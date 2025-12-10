@@ -1,0 +1,21 @@
+stages:
+  - build
+
+variables:
+  IMAGE_NAME: "$CI_REGISTRY_IMAGE/python-automation-base"
+
+build-and-push:
+  stage: build
+  image: docker:25.0.3
+  services:
+    - docker:25.0.3-dind
+  before_script:
+    - echo "Logging in to $CI_REGISTRY"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  script:
+    - docker build --pull -t "$IMAGE_NAME:$CI_COMMIT_SHORT_SHA" -t "$IMAGE_NAME:latest" .
+    - docker push "$IMAGE_NAME:$CI_COMMIT_SHORT_SHA"
+    - docker push "$IMAGE_NAME:latest"
+  rules:
+    - if: $CI_COMMIT_BRANCH
+      when: always
